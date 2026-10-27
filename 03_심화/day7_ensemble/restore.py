@@ -13,9 +13,10 @@ valid_ids = manifest.loc[manifest["split"] == "valid"].sort_values("position")["
 X_valid = raw.loc[valid_ids, FEATURES]
 selection = json.loads((HERE / "outputs/selection.json").read_text(encoding="utf-8"))
 previous = pd.read_csv(HERE / "outputs/validation_predictions.csv")
-# TODO C08: 직접 생성한 outputs/selected_models.joblib을 복원하세요.
-models = None
-# TODO 끝
+# 해설 C08: 직접 생성한 outputs/selected_models.joblib을 복원하세요.
+# joblib은 신뢰할 수 없는 파일을 로드하면 위험합니다. 이 프로젝트에서 방금 만든 파일만 같은 환경에서 읽습니다.
+models = joblib.load(HERE / "outputs/selected_models.joblib")
+# 해설 끝
 # 제공: 예측 배열뿐 아니라 저장된 ID·순서까지 맞춰 대조합니다.
 for task in ["classification", "regression"]:
     model = models[task]

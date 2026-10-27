@@ -61,10 +61,11 @@ for name, estimator, scale in classifiers:
     model = build_model(estimator, scale=scale)
     # 제공: CV에 전처리 전 X와 Pipeline을 전달합니다. fold 내부에서 전처리를 학습합니다.
     scores = cross_val_score(model, X_train, y_train, cv=class_folds, scoring="f1", n_jobs=1)
-    # TODO C07a: 분류 후보를 train 전체로 학습하고 valid를 예측하세요.
-    pass
-    prediction = None
-    # TODO 끝
+    # 해설 C07a: 분류 후보를 train 전체로 학습하고 valid를 예측하세요.
+    # CV의 각 학습 모델은 복제본입니다. 현재 Pipeline은 전체 train60에서 따로 fit한 뒤 바깥 valid20을 예측합니다.
+    model.fit(X_train, y_train)
+    prediction = model.predict(X_valid)
+    # 해설 끝
     probability = model.predict_proba(X_valid)[:, list(model.classes_).index(1)]
     class_rows.append({"model": name, "CV_F1": scores.mean(), "CV_std": scores.std(),
                        "scale": "standard" if scale else "none",
@@ -81,10 +82,11 @@ for name, estimator, scale in regressors:
     # 제공: 회귀는 fold별 RMSE를 평균합니다. 분류 F1과 합쳐 순위를 만들지 않습니다.
     scores = -cross_val_score(model, X_train, train["elapsed_ms"], cv=reg_folds,
                               scoring="neg_root_mean_squared_error", n_jobs=1)
-    # TODO C07b: 회귀 후보를 실행시간 정답으로 학습하고 valid를 예측하세요.
-    pass
-    prediction = None
-    # TODO 끝
+    # 해설 C07b: 회귀 후보를 실행시간 정답으로 학습하고 valid를 예측하세요.
+    # 분류 실패 정답 대신 실행시간을 사용합니다. 지표·선택도 분류와 별도로 계산합니다.
+    model.fit(X_train, train["elapsed_ms"])
+    prediction = model.predict(X_valid)
+    # 해설 끝
     reg_rows.append({"model": name, "CV_RMSE_ms": scores.mean(), "CV_std_ms": scores.std(),
                      "scale": "standard" if scale else "none", **regression_metrics(valid["elapsed_ms"], prediction)})
     for number, value in enumerate(scores, start=1):
